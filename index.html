@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financeiro Pro 2026</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2ecc71">
+    <style>
+    :root { 
+        --primary: #2ecc71; 
+        --danger: #e74c3c; 
+        --info: #3498db; 
+        --bg: #f8f9fa; 
+        --dark: #2c3e50; 
+        --soft-red: #ff7675; 
+    }
+      
+    html, body { 
+        height: 100%;
+        overflow: hidden; 
+        font-family: 'Segoe UI', Arial, sans-serif; 
+        margin: 0; 
+        background: var(--bg); 
+        color: #333; 
+    }
+      
+    .container { 
+        max-width: 500px; 
+        margin: auto; 
+        padding: 10px; 
+        height: 100vh; 
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+    
+    .page { 
+        display: none;
+        height: 100%;
+        flex-direction: column;
+    }
+
+    .active { display: flex !important; }
+
+    #page-gestao.active { display: block !important; overflow-y: auto; }
+
+    #page-welcome { 
+        text-align: center; 
+        background: white; 
+        padding: 60px 20px; 
+        border-radius: 40px; 
+        margin-top: 30px; 
+        box-shadow: 0 15px 35px rgba(0,0,0,0.06);
+    }
+
+    .welcome-icon-container {
+        background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        margin: 0 auto 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 10px 20px rgba(46, 204, 113, 0.2);
+        animation: floatIcon 3s ease-in-out infinite;
+    }
+
+    @keyframes floatIcon {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-12px); }
+    }
+
+    .welcome-text { color: #8e9eab; line-height: 1.6; margin-bottom: 40px; }
+
+    h1.main-title { font-size: 1.6rem; font-weight: 800; color: var(--dark); margin: 5px 0 10px 0; text-align: center; }
+
+    .data-completa { 
+        text-align: center; background: #ebf5fb; color: var(--info); 
+        padding: 8px 20px; border-radius: 50px; font-weight: 800; font-size: 0.9rem;
+        margin: 10px auto; display: table; border: 1px solid #d6eaf8;
+    }
+
+    .dash-header { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 10px; }
+    
+    .card-top { 
+        background: white; border-radius: 20px; padding: 15px 10px; text-align: center; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05); position: relative; border-bottom: 4px solid transparent;
+    }
+    
+    .card-renda { border-color: var(--primary); }
+    .card-pode { border-color: var(--info); }
+    .card-gasto { border-color: var(--danger); }
+    .card-half { grid-column: span 1; }
+    .card-full { grid-column: span 2; }
+
+    .label-card { color: #95a5a6; font-size: 0.65rem; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; display: block; }
+    .valor-card { font-size: 1.2rem; font-weight: 800; color: #444; }
+
+    #rendaInput { border: none; background: transparent; outline: none; font-size: 1.5rem; font-weight: 800; color: var(--primary); text-align: center; width: 100%; }
+
+    .btn-nav { width: 100%; padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; margin: 5px 0; font-size: 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+      
+    .btn-add { background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+    .btn-clear { background: var(--soft-red); color: white; width: 100%; margin-top: 20px; }
+    .btn-icon { background: none; border: none; cursor: pointer; font-size: 1rem; }
+
+    .section-box { background: white; border-radius: 15px; padding: 10px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    
+    .input-row { display: flex; gap: 5px; margin-bottom: 15px; align-items: center; }
+    .input-row input { flex: 1; min-width: 50px; padding: 10px; border: 1px solid #eee; border-radius: 8px; background: #fafafa; font-size: 0.85rem; }
+    
+    /* Ajuste específico para o campo de parcelas caber na linha */
+    #p-total { flex: 0.5; min-width: 60px; text-align: center; }
+
+    .item-list { border-top: 1px solid #eee; margin-top: 10px; }
+    .data-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 5px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
+    .total-row { display: flex; justify-content: flex-end; padding-top: 10px; margin-top: 5px; border-top: 2px dashed #eee; font-weight: 800; color: var(--info); font-size: 1rem; }
+    
+    .dash-details { display: flex; justify-content: space-around; margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee; }
+    .detail-item { display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .legend-box-small { width: 12px; height: 12px; border-radius: 3px; margin-bottom: 4px; }
+    .detail-item span { font-size: 0.6rem; color: #95a5a6; text-transform: uppercase; font-weight: bold; }
+    .detail-item b { font-size: 0.85rem; color: var(--dark); }
+
+    #custom-modal { display: none; position: fixed; z-index: 999; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+    .modal-content { background: white; padding: 25px; border-radius: 20px; width: 80%; max-width: 350px; text-align: center; }
+    .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+    .btn-m { flex: 1; padding: 12px; border-radius: 10px; border: none; font-weight: bold; cursor: pointer; }
+    
+    #meuGrafico { max-height: 160px !important; width: auto !important; margin: 0 auto !important; }
+</style>
+</head>
+<body>
+
+<div id="custom-modal">
+    <div class="modal-content">
+        <h2 id="modal-title" style="margin-top:0; color: var(--dark); font-size: 1.4rem;">Confirmar?</h2>
+        <p id="modal-msg" style="color: #666;"></p>
+        <div class="modal-buttons">
+            <button class="btn-m" style="background: #eee;" onclick="fecharModal()">Cancelar</button>
+            <button id="modal-confirm-btn" class="btn-m" style="background: var(--soft-red); color: white;">Sim</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div id="page-welcome" class="page active">
+        <div class="welcome-icon-container">
+            <span style="font-size: 4rem;">💰</span>
+        </div>
+        <h2 id="welcome-title" style="font-size: 2.2rem; margin-bottom: 5px; color: var(--dark);">Financeiro Pro</h2>
+        <p id="welcome-msg" class="welcome-text"></p>
+        <button class="btn-nav" style="background: var(--primary); color: white; padding: 18px; border-radius: 20px;" onclick="irPara('page-dash')">Começar Agora ➔</button>
+    </div>
+
+    <div id="page-dash" class="page">
+        <h1 class="main-title">Dashboard Financeiro</h1>
+        <div class="dash-header">
+            <div class="card-top card-pode card-half">
+                <span class="label-card">Pode Gastar</span>
+                <span id="dash-disponivel" class="valor-card" style="color: var(--info);">R$ 0,00</span>
+            </div>
+            <div class="card-top card-gasto card-half">
+                <span class="label-card">Total Gasto Atual</span>
+                <span id="dash-total" class="valor-card" style="color: var(--danger);">R$ 0,00</span>
+            </div>
+        </div>
+        <div id="data-atual" class="data-completa"></div>
+        <div class="section-box">
+            <canvas id="meuGrafico"></canvas>
+            <div class="dash-details">
+                <div class="detail-item">
+                    <div class="legend-box-small" style="background: #2E75B6;"></div>
+                    <span>Fixos</span><b id="d-fixo">R$ 0,00</b>
+                </div>
+                <div class="detail-item">
+                    <div class="legend-box-small" style="background: #C000C0;"></div>
+                    <span>Parcelas</span><b id="d-parc">R$ 0,00</b>
+                </div>
+                <div class="detail-item">
+                    <div class="legend-box-small" style="background: #FFC000;"></div>
+                    <span>Extras</span><b id="d-extra">R$ 0,00</b>
+                </div>
+            </div>
+        </div>
+        <button class="btn-nav" style="background: var(--dark); color: white;" onclick="irPara('page-gestao')">Gerenciar Gastos ➔</button>
+    </div>
+
+    <div id="page-gestao" class="page">
+        <div class="dash-header">
+            <div class="card-top card-renda">
+                <span class="label-card">Minha Renda (Valor)</span>
+                <input type="number" id="rendaInput" step="0.01" onfocus="this.value=''" oninput="salvarRenda()" onblur="formatarRenda(this)">
+            </div>
+            <div class="card-top card-pode">
+                <span class="label-card">Pode Gastar</span>
+                <span id="gestao-disponivel" class="valor-card" style="color: var(--info);">R$ 0,00</span>
+            </div>
+            <div class="card-top card-gasto card-full">
+                <span class="label-card">Total Gasto Atual</span>
+                <span id="gestao-total" class="valor-card" style="color: var(--danger);">R$ 0,00</span>
+            </div>
+        </div>
+
+        <div class="section-box">
+            <h3>📌 Gastos Fixos</h3>
+            <div class="input-row">
+                <input type="text" id="f-nome" placeholder="Nome">
+                <input type="number" id="f-valor" placeholder="R$">
+                <button class="btn-add" onclick="addFixo()">Salvar</button>
+            </div>
+            <div id="lista-fixos" class="item-list"></div>
+            <div id="total-fixo" class="total-row"></div>
+        </div>
+
+        <div class="section-box">
+            <h3>💳 Gasto Parcelado</h3>
+            <div class="input-row">
+                <input type="text" id="p-nome" placeholder="Nome">
+                <input type="text" id="p-total" placeholder="01/10" maxlength="5" oninput="mascaraParcela(this)">
+                <input type="number" id="p-valor" placeholder="R$">
+                <button class="btn-add" onclick="addParcela()">Salvar</button>
+            </div>
+            <div id="lista-parcelas" class="item-list"></div>
+            <div id="total-parc" class="total-row"></div>
+        </div>
+
+        <div class="section-box">
+            <h3>🛒 Extras do Dia</h3>
+            <div class="input-row">
+                <input type="text" id="e-nome" placeholder="O que comprou?">
+                <input type="number" id="e-valor" placeholder="R$">
+                <button class="btn-add" onclick="addExtra()" style="background: var(--info);">Adicionar</button>
+            </div>
+            <div id="lista-extras" class="item-list"></div>
+            <div id="total-extra" class="total-row"></div>
+        </div>
+
+        <button class="btn-nav" style="background: #34495e; color: white;" onclick="irPara('page-dash')">
+    ⬅ Retornar ao Dashboard
+</button>
+        <button class="btn-nav btn-clear" onclick="abrirModalLimpeza()">Limpar Extras (Virada de Mês)</button>
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('financas_v3')) || { renda: 0, fixos: [], parcelas: [], extras: [] };
+    let chart = null;
+    const coresGrafico = ['#2E75B6', '#C000C0', '#FFC000'];
+
+    window.onload = () => {
+        const agora = new Date();
+        document.getElementById('welcome-title').innerText = `Financeiro Pro ${agora.getFullYear()}`;
+        document.getElementById('welcome-msg').innerText = "Acompanhe seus gastos de forma simples e rápida.";
+        atualizarDataCompleta();
+        document.getElementById('rendaInput').value = parseFloat(db.renda || 0).toFixed(2);
+        atualizarSistema();
+    };
+
+    function atualizarDataCompleta() {
+        const d = new Date();
+        const meses = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+        document.getElementById('data-atual').innerText = `🗓 ${String(d.getDate()).padStart(2, '0')} ${meses[d.getMonth()]} ${d.getFullYear()}`;
+    }
+
+    function irPara(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        atualizarSistema();
+    }
+
+    function salvarRenda() {
+        db.renda = parseFloat(document.getElementById('rendaInput').value) || 0;
+        atualizarSistema();
+    }
+
+    function formatarRenda(input) {
+        let v = parseFloat(input.value);
+        input.value = isNaN(v) ? parseFloat(db.renda).toFixed(2) : v.toFixed(2);
+        salvarRenda();
+    }
+
+    function mascaraParcela(input) {
+        let v = input.value.replace(/\D/g, "");
+        if (v.length >= 2) input.value = v.substring(0, 2) + "/" + v.substring(2, 4);
+        else input.value = v;
+    }
+
+    function getParcelaAtual(dataCriacao) {
+        const inicio = new Date(dataCriacao);
+        const agora = new Date();
+        return (agora.getFullYear() - inicio.getFullYear()) * 12 + agora.getMonth() - inicio.getMonth() + 1;
+    }
+
+    function addFixo() {
+        const n = document.getElementById('f-nome').value, v = parseFloat(document.getElementById('f-valor').value);
+        if(n && v) { db.fixos.unshift({id: Date.now(), nome: n, valor: v}); limparInputs(); atualizarSistema(); }
+    }
+
+    function addParcela() {
+        const n = document.getElementById('p-nome').value, t = document.getElementById('p-total').value, v = parseFloat(document.getElementById('p-valor').value);
+        if (n && /^\d{2}\/\d{2}$/.test(t) && v) {
+            const p = t.split('/'), pAt = parseInt(p[0]), pTo = parseInt(p[1]);
+            let d = new Date(); d.setDate(1); d.setMonth(d.getMonth() - (pAt - 1));
+            db.parcelas.unshift({id: Date.now(), nome: n, total: pTo, valor: v, data: d.toISOString()});
+            limparInputs(); atualizarSistema();
+        }
+    }
+
+    function addExtra() {
+        const n = document.getElementById('e-nome').value, v = parseFloat(document.getElementById('e-valor').value);
+        if(n && v) { db.extras.unshift({id: Date.now(), nome: n, valor: v}); limparInputs(); atualizarSistema(); }
+    }
+
+    function limparInputs() { document.querySelectorAll('.input-row input').forEach(i => i.value = ''); }
+
+    // FUNÇÕES DO MODAL CUSTOMIZADO
+    function abrirModal(titulo, msg, acaoConfirmar) {
+        document.getElementById('modal-title').innerText = titulo;
+        document.getElementById('modal-msg').innerText = msg;
+        document.getElementById('custom-modal').style.display = 'flex';
+        document.getElementById('modal-confirm-btn').onclick = () => {
+            acaoConfirmar();
+            fecharModal();
+        };
+    }
+
+    function fecharModal() { document.getElementById('custom-modal').style.display = 'none'; }
+
+    function remover(tipo, id) {
+        abrirModal("Excluir Item?", "Deseja realmente remover este gasto da sua lista?", () => {
+            db[tipo] = db[tipo].filter(i => i.id !== id);
+            atualizarSistema();
+        });
+    }
+
+    function abrirModalLimpeza() {
+        abrirModal("Limpar Extras?", "Isso apagará todos os gastos extras da lista. Deseja continuar?", () => {
+            db.extras = [];
+            atualizarSistema();
+        });
+    }
+
+    function atualizarSistema() {
+        localStorage.setItem('financas_v3', JSON.stringify(db));
+        const render = (lista, divId, totalId, isParc = false) => {
+            const div = document.getElementById(divId);
+            let sub = 0; div.innerHTML = '';
+            lista.forEach(i => {
+                const at = isParc ? getParcelaAtual(i.data) : null;
+                if(isParc && at > i.total) return;
+                sub += i.valor;
+                div.innerHTML += `<div class="data-row"><div><span>${i.nome}</span> ${isParc ? `<small>(${at}/${i.total})</small>` : ''} <b>R$ ${i.valor.toFixed(2)}</b></div><button class="btn-icon" onclick="remover('${isParc ? 'parcelas' : divId.split('-')[1]}', ${i.id})">🗑️</button></div>`;
+            });
+            document.getElementById(totalId).innerText = `R$ ${sub.toFixed(2)}`;
+            return sub;
+        };
+
+        let tF = render(db.fixos, 'lista-fixos', 'total-fixo');
+        let tP = render(db.parcelas, 'lista-parcelas', 'total-parc', true);
+        let tE = render(db.extras, 'lista-extras', 'total-extra');
+
+        let total = tF + tP + tE;
+        document.getElementById('dash-total').innerText = document.getElementById('gestao-total').innerText = `R$ ${total.toFixed(2)}`;
+        document.getElementById('dash-disponivel').innerText = document.getElementById('gestao-disponivel').innerText = `R$ ${(db.renda - total).toFixed(2)}`;
+        document.getElementById('d-fixo').innerText = `R$ ${tF.toFixed(2)}`;
+        document.getElementById('d-parc').innerText = `R$ ${tP.toFixed(2)}`;
+        document.getElementById('d-extra').innerText = `R$ ${tE.toFixed(2)}`;
+        renderChart(tF, tP, tE);
+    }
+
+    function renderChart(f, p, e) {
+        const ctx = document.getElementById('meuGrafico').getContext('2d');
+        if(chart) chart.destroy();
+        chart = new Chart(ctx, {
+            type: 'pie',
+            data: { datasets: [{ data: [f, p, e], backgroundColor: coresGrafico, borderWidth: 2 }] },
+            options: { plugins: { legend: { display: false } }, maintainAspectRatio: false }
+        });
+    }
+    
+    // Registra o Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js');
+  }
+</script>
+</body>
+</html>
